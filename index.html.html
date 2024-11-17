@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T&A DATA SUBMISSION FORM</title>
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="card p-4 shadow">
+        <h2 class="text-center mb-4">T&A DATA SUBMISSION FORM</h2>
+        <form id="productionForm">
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="startDate" class="form-label">Start Date:</label>
+                    <input type="text" id="startDate" class="form-control datepicker" placeholder="Select Start Date" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="endDate" class="form-label">End Date:</label>
+                    <input type="text" id="endDate" class="form-control datepicker" placeholder="Select End Date" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="productionPerDay" class="form-label">Production Per Day Per Machine:</label>
+                <input type="number" id="productionPerDay" class="form-control" min="1" required>
+            </div>
+            <div class="mb-3">
+                <label for="totalOrderQuantity" class="form-label">Total Order Quantity:</label>
+                <input type="number" id="totalOrderQuantity" class="form-control" min="1" required>
+            </div>
+
+            <div id="fabricContainer"></div>
+            <div class="text-center">
+                <button type="button" class="btn btn-primary mt-3" id="addFabricBtn">Add Fabric</button>
+            </div>
+          
+
+            <div class="mb-3 mt-3">
+                <label for="processes" class="form-label">Processes:</label>
+                <select id="processes" class="form-select" multiple></select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Is International Fabric Present?</label><br>
+                <input type="radio" id="internationalFabricYes" name="internationalFabric" value="Yes"> Yes
+                <input type="radio" id="internationalFabricNo" name="internationalFabric" value="No" checked> No
+            </div>
+
+            <div id="otherFabricSection" class="mb-3" style="display: none;">
+                <label for="otherFabric" class="form-label">Major Fabric:</label>
+                <select id="otherFabric" class="form-select"></select>
+            </div>
+
+            <div class="mb-3">
+                <label for="trims" class="form-label">Trims:</label>
+                <select id="trims" class="form-select" multiple></select>
+            </div>
+
+            <div class="mb-3">
+                <label for="accessories" class="form-label">Accessories:</label>
+                <select id="accessories" class="form-select" multiple></select>
+            </div>
+
+            <div class="mb-3">
+                <label for="stages" class="form-label">Stages:</label>
+                <select id="stages" class="form-select" multiple></select>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary submit-button">Submit</button>
+            </div>
+           
+        </form>
+
+        <h3 class="mt-4">Form Data (JSON):</h3>
+        <pre id="jsonData"></pre>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+//   fields data values
+    const fabrics = ["BAG VOILE", "WISTERIA VOLIE", "SHEETING", "WINDOWPANE GAUZ", "FP001", "WAFFEL", "2X2 RIB", "FRENCH TERRY", "VISCOUS LYCRA", "OTHER KNITS", "LACES", "SHIFILLI", "SPECIAL FABRICS", "IMPORTED FABRICS", "CHINA LACE"];
+    const processes = ["DYING", "PRINTING", "MOCK UP", "LACES", "SHIFFLY", "WASHING"];
+    const trims = ["LABEL COPPER", "TAG", "STICKER", "POLY BAG", "STITCHING THREAD"];
+    const accessories = ["WASHCARE LABEL", "PRICE TAG", "SIZE LABEL", "BUTTON", "ZIP", "HOOK"];
+    const stages = ["PURCHASE", "SUBMISSION", "FOB", "BULK", "FABRIC AUDIT", "PRODUCTION", "TOP", "WEB", "SIZE SET"];
+
+    const fabricContainer = document.getElementById("fabricContainer");
+    const addFabricBtn = document.getElementById("addFabricBtn");
+
+    let selectedFabrics = [];
+
+    //  adding dropdown
+    function addOptionToSelect(selectId, text) {
+        const select = document.getElementById(selectId);
+        const option = document.createElement("option");
+        option.value = text;
+        option.textContent = text;
+        select.appendChild(option);
+    }
+
+    // Create dropdowns
+    processes.forEach(process => addOptionToSelect("processes", process));
+    trims.forEach(trim => addOptionToSelect("trims", trim)); 
+    accessories.forEach(accessory => addOptionToSelect("accessories", accessory)); 
+    stages.forEach(stage => addOptionToSelect("stages", stage)); 
+
+    document.addEventListener("DOMContentLoaded", function () {
+    createFabricEntry(0);
+});
+
+    function createFabricEntry(index) {
+        const fabricEntryContainer = document.createElement("div");
+        fabricEntryContainer.classList.add("fabric-entry", "mb-4","mt-4");
+        fabricEntryContainer.innerHTML = `
+            <h4>Fabric ${index + 1}</h4>
+
+            <!-- Fabric Name -->
+            <div class="mb-3">
+                <label for="fabricName${index}" class="form-label">Fabric Name:</label>
+                <select id="fabricName${index}" class="form-select" required>
+                    ${fabrics.map(fabric => `<option value="${fabric}">${fabric}</option>`).join('')}
+                </select>
+            </div>
+
+            <!-- Per Piece Requirement -->
+            <div class="mb-3">
+                <label for="perPieceRequirement${index}" class="form-label">Per Piece Requirement:</label>
+                <input type="number" id="perPieceRequirement${index}" class="form-control" min="0.1" step="0.1" required>
+            </div>
+
+            <!-- Choose Unit -->
+            <div class="mb-3">
+                <label class="form-label">Choose Unit:</label><br>
+                <input type="radio" name="unit${index}" value="Metre" checked> Metre
+                <input type="radio" name="unit${index}" value="Kg"> Kg
+            </div>
+
+            <!-- Color Selection -->
+            <div class="mb-3">
+                <label for="color${index}" class="form-label">Color:</label>
+                <input type="text" id="color${index}" class="form-control" required>
+            </div>
+
+            <!-- Quantity -->
+            <div class="mb-3">
+                <label for="quantity${index}" class="form-label">Quantity:</label>
+                <input type="number" id="quantity${index}" class="form-control" min="1" required>
+            </div>
+        `;
+        fabricContainer.appendChild(fabricEntryContainer);
+
+
+        const fabricSelect = document.getElementById(`fabricName${index}`);
+        fabricSelect.addEventListener("change", function () {
+            const selectedFabric = fabricSelect.value;
+            if (!selectedFabrics.includes(selectedFabric)) {
+                selectedFabrics.push(selectedFabric);
+            }
+            updateMajorFabricDropdown();
+        });
+    }
+            //  create fabric container on clicking add fabric button
+    addFabricBtn.addEventListener("click", function () {
+        const index = fabricContainer.children.length;
+        createFabricEntry(index);
+    });
+
+    function updateMajorFabricDropdown() {
+        const selectedFabricsSet = new Set(selectedFabrics);
+        const availableFabrics = fabrics.filter(fabric => !selectedFabricsSet.has(fabric));
+
+        const otherFabricSelect = document.getElementById("otherFabric");
+        otherFabricSelect.innerHTML = ""; 
+
+        availableFabrics.forEach(fabric => addOptionToSelect("otherFabric", fabric));
+    }
+
+    // Show or Hide major fabric section based on yes or no
+    document.getElementById("internationalFabricYes").addEventListener("change", toggleOtherFabricSection);
+    document.getElementById("internationalFabricNo").addEventListener("change", toggleOtherFabricSection);
+
+    function toggleOtherFabricSection() {
+        const isYes = document.getElementById("internationalFabricYes").checked;
+        const otherFabricSection = document.getElementById("otherFabricSection");
+        if (isYes) {
+            otherFabricSection.style.display = "block";
+            updateMajorFabricDropdown();
+        } else {
+            otherFabricSection.style.display = "none";
+        }
+    }
+
+    //  Date Selector 
+    flatpickr(".datepicker", { dateFormat: "Y-m-d" });
+
+    //  Submit form
+    document.getElementById("productionForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const formData = {
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value,
+            productionPerDay: document.getElementById("productionPerDay").value,
+            totalOrderQuantity: document.getElementById("totalOrderQuantity").value,
+            fabrics: [],
+            selectedProcesses: Array.from(document.getElementById("processes").selectedOptions).map(option => option.value),
+            selectedTrims: Array.from(document.getElementById("trims").selectedOptions).map(option => option.value),
+            selectedAccessories: Array.from(document.getElementById("accessories").selectedOptions).map(option => option.value),
+            selectedStages: Array.from(document.getElementById("stages").selectedOptions).map(option => option.value),
+            internationalFabric: document.querySelector('input[name="internationalFabric"]:checked').value,
+            MajorFabric: document.getElementById("otherFabric").value
+        };
+
+        Array.from(fabricContainer.children).forEach((fabricEntry, index) => {
+            const fabricData = {
+                fabricName: document.getElementById(`fabricName${index}`).value,
+                perPieceRequirement: document.getElementById(`perPieceRequirement${index}`).value,
+                unit: document.querySelector(`input[name="unit${index}"]:checked`).value,
+                color: document.getElementById(`color${index}`).value,
+                quantity: document.getElementById(`quantity${index}`).value,
+            };
+            formData.fabrics.push(fabricData);
+        });
+
+        document.getElementById("jsonData").textContent = JSON.stringify(formData, null, 2);
+    });
+</script>
+
+</body>
+</html>
