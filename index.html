@@ -79,6 +79,21 @@
 
         <h3 class="mt-4">Form Data (JSON):</h3>
         <pre id="jsonData"></pre>
+
+          <!-- Table to Display Data -->
+          <h3 class="mt-4">Form Data (Table View):</h3>
+          <table class="table table-bordered" id="dataTable" style="display:none;">
+              <thead>
+                  <tr>
+                      <th>Field</th>
+                      <th>Value</th>
+                  </tr>
+              </thead>
+              <tbody id="dataTableBody">
+                  <!-- Table rows will be added here -->
+              </tbody>
+          </table>
+
     </div>
 </div>
 
@@ -230,7 +245,64 @@
         });
 
         document.getElementById("jsonData").textContent = JSON.stringify(formData, null, 2);
+        displayTableData(formData);
     });
+
+
+
+            //  display data in table 
+ function displayTableData(formData) {
+        const table = document.getElementById("dataTable");
+        const tableBody = document.getElementById("dataTableBody");
+
+        tableBody.innerHTML = "";
+
+        const fields = [
+            { label: "Start Date", value: formData.startDate },
+            { label: "End Date", value: formData.endDate },
+            { label: "Production Per Day", value: formData.productionPerDay },
+            { label: "Total Order Quantity", value: formData.totalOrderQuantity },
+            { label: "International Fabric", value: formData.internationalFabric },
+            { label: "Major Fabric", value: formData.MajorFabric }
+        ];
+
+   
+        fields.forEach(field => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${field.label}</td><td>${field.value}</td>`;
+            tableBody.appendChild(row);
+        });
+
+
+        formData.fabrics.forEach((fabric, index) => {
+            let row = document.createElement("tr");
+            row.innerHTML = `<td colspan="2"><strong>Fabric ${index + 1}</strong></td>`;
+            tableBody.appendChild(row);
+            
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Fabric Name</td><td>${fabric.fabricName}</td>`;
+            tableBody.appendChild(row);
+            
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Per Piece Requirement</td><td>${fabric.perPieceRequirement}</td>`;
+            tableBody.appendChild(row);
+            
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Unit</td><td>${fabric.unit}</td>`;
+            tableBody.appendChild(row);
+            
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Color</td><td>${fabric.color}</td>`;
+            tableBody.appendChild(row);
+            
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Quantity</td><td>${fabric.quantity}</td>`;
+            tableBody.appendChild(row);
+        });
+
+        table.style.display = "table";
+    }
+
 </script>
 
 </body>
