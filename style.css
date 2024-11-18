@@ -36,3 +36,9 @@ input[type="number"]::-ms-clear {
 .form-label{
     font-weight:bold;
 }
+@media only screen and (max-width:768px){
+    .submit-button{
+        width:30%;
+    
+}
+    
