@@ -75,10 +75,7 @@
                 <select id="accessories" class="form-select" multiple></select>
             </div>
 
-            <div class="mb-3">
-                <label for="stages" class="form-label">Stages:</label>
-                <select id="stages" class="form-select" multiple></select>
-            </div>
+            
             <div class="text-center">
                 <button type="submit" class="btn btn-primary submit-button">Submit</button>
             </div>
@@ -131,7 +128,7 @@
     // Create dropdowns
     trims.forEach(trim => addOptionToSelect("trims", trim)); 
     accessories.forEach(accessory => addOptionToSelect("accessories", accessory)); 
-    stages.forEach(stage => addOptionToSelect("stages", stage)); 
+    // stages.forEach(stage => addOptionToSelect("stages", stage)); 
 
     document.addEventListener("DOMContentLoaded", function () {
     createFabricEntry(0);
