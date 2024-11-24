@@ -41,10 +41,10 @@
             </div>
           
 
-            <div class="mb-3 mt-3">
+            <!-- <div class="mb-3 mt-3">
                 <label for="processes" class="form-label">Processes:</label>
                 <select id="processes" class="form-select" multiple></select>
-            </div>
+            </div> -->
 
             <div class="mb-3">
                 <label class="form-label">Is International Fabric Present?</label><br>
@@ -53,8 +53,16 @@
             </div>
 
             <div id="otherFabricSection" class="mb-3" style="display: none;">
-                <label for="otherFabric" class="form-label">Major Fabric:</label>
+                <label for="otherFabric" class="form-label">Select International Fabric:</label>
                 <select id="otherFabric" class="form-select"></select>
+            </div>
+
+            <!-- Add this after the "Is International Fabric Present?" section -->
+            <div class="mb-3" id="majorFabricSection">
+                <label for="majorFabric" class="form-label">Major Fabric:</label>
+                <select id="majorFabric" class="form-select">
+                    <option value="None">None</option>
+                </select>
             </div>
 
             <div class="mb-3">
@@ -121,7 +129,6 @@
     }
 
     // Create dropdowns
-    processes.forEach(process => addOptionToSelect("processes", process));
     trims.forEach(trim => addOptionToSelect("trims", trim)); 
     accessories.forEach(accessory => addOptionToSelect("accessories", accessory)); 
     stages.forEach(stage => addOptionToSelect("stages", stage)); 
@@ -134,7 +141,11 @@
         const fabricEntryContainer = document.createElement("div");
         fabricEntryContainer.classList.add("fabric-entry", "mb-4","mt-4");
         fabricEntryContainer.innerHTML = `
-            <h4>Fabric ${index + 1}</h4>
+        <h4 class="d-flex justify-content-between align-items-center">
+            Fabric ${index + 1}
+            <!-- Remove Button -->
+            <button type="button" class="btn btn-danger" onclick="removeFabricEntry(${index})">Remove Fabric</button>
+        </h4>
 
             <!-- Fabric Name -->
             <div class="mb-3">
@@ -143,6 +154,8 @@
                     ${fabrics.map(fabric => `<option value="${fabric}">${fabric}</option>`).join('')}
                 </select>
             </div>
+
+           
 
             <!-- Per Piece Requirement -->
             <div class="mb-3">
@@ -157,44 +170,133 @@
                 <input type="radio" name="unit${index}" value="Kg"> Kg
             </div>
 
-            <!-- Color Selection -->
+         <!-- Color Selection with Quantity -->
+        <div id="colorsContainer${index}" class="mb-3">
+            <label for="colors${index}" class="form-label">Colors:</label>
+            <div class="color-entry">
+                <input type="text" id="color${index}-1" class="form-control mb-2" placeholder="Color" required>
+                <input type="number" id="quantity${index}-1" class="form-control mb-2" placeholder="Quantity" min="1" required>
+            </div>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="addColorField(${index})">Add Color</button>
+
+        
+               <!-- Stages for this fabric -->
+        <div class="mb-3">
+            <label for="stages${index}" class="form-label">Stages:</label>
+            <select id="stages${index}" class="form-select" multiple required>
+                ${stages.map(stage => `<option value="${stage}">${stage}</option>`).join('')}
+            </select>
+        </div>
+
+            <!-- Processes for this fabric -->
             <div class="mb-3">
-                <label for="color${index}" class="form-label">Color:</label>
-                <input type="text" id="color${index}" class="form-control" required>
+                <label for="processes${index}" class="form-label">Processes:</label>
+                <select id="processes${index}" class="form-select" multiple required>
+                    ${processes.map(process => `<option value="${process}">${process}</option>`).join('')}
+                </select>
             </div>
 
-            <!-- Quantity -->
-            <div class="mb-3">
-                <label for="quantity${index}" class="form-label">Quantity:</label>
-                <input type="number" id="quantity${index}" class="form-control" min="1" required>
-            </div>
+            
         `;
         fabricContainer.appendChild(fabricEntryContainer);
 
 
         const fabricSelect = document.getElementById(`fabricName${index}`);
+
+        updateFabricDropdown(fabricSelect);
         fabricSelect.addEventListener("change", function () {
             const selectedFabric = fabricSelect.value;
             if (!selectedFabrics.includes(selectedFabric)) {
                 selectedFabrics.push(selectedFabric);
             }
+            updateInternationalFabricDropdown();
             updateMajorFabricDropdown();
         });
     }
+
+
+    // Function to update the fabric dropdown to exclude already selected fabrics
+function updateFabricDropdown(fabricSelect) {
+    // Clear current options
+    fabricSelect.innerHTML = `<option value="">Select Fabric</option>`;  // Default empty option
+
+    // Get available fabrics by filtering out already selected fabrics
+    const availableFabrics = fabrics.filter(fabric => !selectedFabrics.includes(fabric));
+
+    // Populate the dropdown with the available fabrics
+    availableFabrics.forEach(fabric => {
+        const option = document.createElement("option");
+        option.value = fabric;
+        option.textContent = fabric;
+        fabricSelect.appendChild(option);
+    });
+}
+
+
+// // Function to update all fabric dropdowns across all entries
+// function updateFabricDropdowns() {
+//     const allFabricSelects = document.querySelectorAll("[id^='fabricName']");
+
+//     allFabricSelects.forEach(select => {
+//         updateFabricDropdown(select);
+//     });
+// }
+
+     // Remove fabric entry by index
+    function removeFabricEntry(index) {
+    const fabricEntryContainer = fabricContainer.children[index];
+    fabricContainer.removeChild(fabricEntryContainer);
+    
+    // Update the selected fabrics list by removing the fabric associated with the removed entry
+    const fabricName = document.getElementById(`fabricName${index}`).value;
+    selectedFabrics = selectedFabrics.filter(fabric => fabric !== fabricName);
+    
+    updateInternationalFabricDropdown();
+    updateMajorFabricDropdown();
+}
+
+
             //  create fabric container on clicking add fabric button
     addFabricBtn.addEventListener("click", function () {
         const index = fabricContainer.children.length;
         createFabricEntry(index);
     });
+    function addColorField(index) {
+    const colorsContainer = document.getElementById(`colorsContainer${index}`);
+    const colorIndex = colorsContainer.querySelectorAll("input[type='text']").length + 1; // Get the next index for color field
+    const newColorField = `
+        <div class="color-entry">
+            <input type="text" id="color${index}-${colorIndex}" class="form-control mb-2" placeholder="Color" required>
+            <input type="number" id="quantity${index}-${colorIndex}" class="form-control mb-2" placeholder="Quantity" min="1" required>
+        </div>
+    `;
+    colorsContainer.insertAdjacentHTML('beforeend', newColorField);
+}
 
-    function updateMajorFabricDropdown() {
+// Create or Update major fabric dropdown based on selected fabrics
+function updateMajorFabricDropdown() {
+    const majorFabricSelect = document.getElementById("majorFabric");
+    majorFabricSelect.innerHTML = '<option value="None">None</option>'; // Reset dropdown
+
+    selectedFabrics.forEach(fabric => {
+        const option = document.createElement("option");
+        option.value = fabric;
+        option.textContent = fabric;
+        majorFabricSelect.appendChild(option);
+    });
+}
+
+
+
+    function updateInternationalFabricDropdown() {
         const selectedFabricsSet = new Set(selectedFabrics);
         const availableFabrics = fabrics.filter(fabric => !selectedFabricsSet.has(fabric));
 
         const otherFabricSelect = document.getElementById("otherFabric");
-        otherFabricSelect.innerHTML = ""; 
+        otherFabricSelect.innerHTML = "<option value=''>Select Fabric</option>"; 
 
-        availableFabrics.forEach(fabric => addOptionToSelect("otherFabric", fabric));
+        selectedFabricsSet.forEach(fabric => addOptionToSelect("otherFabric", fabric));
     }
 
     // Show or Hide major fabric section based on yes or no
@@ -204,13 +306,19 @@
     function toggleOtherFabricSection() {
         const isYes = document.getElementById("internationalFabricYes").checked;
         const otherFabricSection = document.getElementById("otherFabricSection");
+        const otherFabricSelect = document.getElementById("otherFabric");
         if (isYes) {
             otherFabricSection.style.display = "block";
-            updateMajorFabricDropdown();
+            updateInternationalFabricDropdown();
         } else {
             otherFabricSection.style.display = "none";
+            otherFabricSelect.innerHTML = "<option value=''>Select Fabric</option>";
         }
     }
+// Call toggle function on initial page load to set the initial visibility
+document.addEventListener("DOMContentLoaded", function() {
+    toggleOtherFabricSection(); // To hide/show based on the initial selection of Yes/No
+});
 
     //  Date Selector 
     flatpickr(".datepicker", { dateFormat: "Y-m-d" });
@@ -225,12 +333,13 @@
             productionPerDay: document.getElementById("productionPerDay").value,
             totalOrderQuantity: document.getElementById("totalOrderQuantity").value,
             fabrics: [],
-            selectedProcesses: Array.from(document.getElementById("processes").selectedOptions).map(option => option.value),
+           // selectedProcesses: Array.from(document.getElementById("processes").selectedOptions).map(option => option.value),
             selectedTrims: Array.from(document.getElementById("trims").selectedOptions).map(option => option.value),
             selectedAccessories: Array.from(document.getElementById("accessories").selectedOptions).map(option => option.value),
-            selectedStages: Array.from(document.getElementById("stages").selectedOptions).map(option => option.value),
+            // selectedStages: Array.from(document.getElementById("stages").selectedOptions).map(option => option.value),
             internationalFabric: document.querySelector('input[name="internationalFabric"]:checked').value,
-            MajorFabric: document.getElementById("otherFabric").value
+            InternationalFabric: document.getElementById("otherFabric").value,
+            majorFabric: document.getElementById("majorFabric").value
         };
 
         Array.from(fabricContainer.children).forEach((fabricEntry, index) => {
@@ -238,20 +347,36 @@
                 fabricName: document.getElementById(`fabricName${index}`).value,
                 perPieceRequirement: document.getElementById(`perPieceRequirement${index}`).value,
                 unit: document.querySelector(`input[name="unit${index}"]:checked`).value,
-                color: document.getElementById(`color${index}`).value,
-                quantity: document.getElementById(`quantity${index}`).value,
+                // color: document.getElementById(`color${index}`).value,
+                // quantity: document.getElementById(`quantity${index}`).value,
+                processes: Array.from(document.getElementById(`processes${index}`).selectedOptions).map(option => option.value), // New line to gather selected processes for each fabric
+                stages: Array.from(document.getElementById(`stages${index}`).selectedOptions).map(option => option.value),  // Add stages here
+                colors:[]
             };
-            formData.fabrics.push(fabricData);
-        });
 
-        document.getElementById("jsonData").textContent = JSON.stringify(formData, null, 2);
-        displayTableData(formData);
+               // Gather colors and quantities for this fabric
+            const colorInputs = document.querySelectorAll(`#colorsContainer${index} input[type="text"]`);
+            const quantityInputs = document.querySelectorAll(`#colorsContainer${index} input[type="number"]`);
+            
+            colorInputs.forEach((colorInput, i) => {
+                const color = colorInput.value;
+                const quantity = quantityInputs[i].value;
+                fabricData.colors.push({ color, quantity });
+            });
+                // fabricData.quantity = document.getElementById(`quantity${index}`).value;
+                formData.fabrics.push(fabricData);
+            });
+
+            document.getElementById("jsonData").textContent = JSON.stringify(formData, null, 2);
+            displayTableData(formData);
+            removeForm();
+            
     });
 
 
 
             //  display data in table 
- function displayTableData(formData) {
+        function displayTableData(formData) {
         const table = document.getElementById("dataTable");
         const tableBody = document.getElementById("dataTableBody");
 
@@ -263,7 +388,8 @@
             { label: "Production Per Day", value: formData.productionPerDay },
             { label: "Total Order Quantity", value: formData.totalOrderQuantity },
             { label: "International Fabric", value: formData.internationalFabric },
-            { label: "Major Fabric", value: formData.MajorFabric }
+            { label: "International Fabric", value: formData.InternationalFabric },
+            { label: "Major Fabric", value: formData.majorFabric } // Add Major
         ];
 
    
@@ -290,18 +416,48 @@
             row = document.createElement("tr");
             row.innerHTML = `<td>Unit</td><td>${fabric.unit}</td>`;
             tableBody.appendChild(row);
-            
+
             row = document.createElement("tr");
-            row.innerHTML = `<td>Color</td><td>${fabric.color}</td>`;
+            row.innerHTML = `<td>Stages</td><td>${fabric.stages.join(', ')}</td>`;  // Display Stages
             tableBody.appendChild(row);
+                
+            // row = document.createElement("tr");
+            // row.innerHTML = `<td>Color</td><td>${fabric.color}</td>`;
+            // tableBody.appendChild(row);
             
+            // row = document.createElement("tr");
+            // row.innerHTML = `<td>Quantity</td><td>${fabric.quantity}</td>`;
+            // tableBody.appendChild(row);
+
             row = document.createElement("tr");
-            row.innerHTML = `<td>Quantity</td><td>${fabric.quantity}</td>`;
+            row.innerHTML = `<td>Processes</td><td>${fabric.processes.join(', ')}</td>`;
             tableBody.appendChild(row);
+
+
+            fabric.colors.forEach((colorData, colorIndex) => {
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Color ${colorIndex + 1}</td><td>${colorData.color}</td>`;
+            tableBody.appendChild(row);
+            row = document.createElement("tr");
+            row.innerHTML = `<td>Quantity</td><td>${colorData.quantity}</td>`;
+            tableBody.appendChild(row);
+        });
+        // row = document.createElement("tr");
+        // row.innerHTML = `<td>Total Quantity</td><td>${fabric.quantity}</td>`;
+        // tableBody.appendChild(row);
         });
 
         table.style.display = "table";
     }
+
+</script>
+
+
+<script>
+    function removeForm() {
+    const formContainer = document.getElementById("productionForm");
+    formContainer.remove(); // This will remove the entire form from the page
+}
 
 </script>
 
